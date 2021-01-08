@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-//#define de_bug 1
+//#define de_bug
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -26,7 +26,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
+int i = 0;
 // 根据url下载图片到save_path的调用接口
 bool MainWindow::dowmload_url(QString url,QString save_path)
 {
@@ -64,8 +64,16 @@ bool MainWindow::dowmload_url(QString url,QString save_path)
 
     // 从url获取文件名，用于保存路径
     //http://xbull.oss-cn-shenzhen.aliyuncs.com/attendance/5fec6769c91fa9.48737443.png
-    QString file_name = url.mid(url.indexOf("attendance/")+11);
+    int len = url.indexOf("attendance/");
+    QString file_name;
+    // 代表没有找到这个字符串，也就是不是上面的特定URL，是其他URL，这种情况就随便起文件名
+    if(len <= 0){
+        file_name = QString::number(i++) +".png";
+    }
+    else file_name = url.mid(len+11);
+
     QString save_file = save_path +"/" +file_name;
+    qDebug() << "file_name is " << file_name;
 
 #ifdef de_bug
     ui->label_stat->setText("图片数据已经存入缓冲区！下面开始保存图片!");
@@ -84,6 +92,7 @@ bool MainWindow::dowmload_url(QString url,QString save_path)
         QImage saveF;
         QByteArray saveF_data = pReplay->readAll();
         if(!saveF.loadFromData(saveF_data)){
+            ui->label_stat->setText("图片下载错误！可能存在丢包等问题！");
             busy = false; // 解除忙,避免卡死
             return false;
         }
@@ -96,7 +105,9 @@ bool MainWindow::dowmload_url(QString url,QString save_path)
         if(!ui->radioButton->isChecked())
         {
             QPixmap pic;
-            pic.load(save_file);
+            if(!pic.load(save_file)){
+                QMessageBox::warning(this,tr("Ops!"),tr("文件下载完成，但是打开错误！请检查路径、检查文件名！"),QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Ok);
+            }
             pic = pic.scaled(ui->label_2->size());
             ui->label_2->setPixmap(pic);
         }
@@ -108,9 +119,9 @@ bool MainWindow::dowmload_url(QString url,QString save_path)
     else // 有错误
     {
         QVariant statusCodeV = pReplay->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-        QString err_msg = QString("获取错误！ request %1 handle errors here\n").arg(file_name);
+        QString err_msg = QString("获取错误！request [%1] handle errors\n\n").arg(file_name);
         err_msg += pReplay->errorString();
-        err_msg += QString("\nrequest %1 found error ....code: %2 %3\n").arg(file_name).arg(statusCodeV.toInt()).arg((int)pReplay->error());
+        err_msg += QString("\n\nrequest [%1] found error ....code: [%2] [%3]\n").arg(file_name).arg(statusCodeV.toInt()).arg((int)pReplay->error());
         QMessageBox::warning(this,tr("警告"),err_msg,QMessageBox::Ok|QMessageBox::Cancel,QMessageBox::Ok);
         ui->label_stat->setText("请检查网路链接或重新输入URL!");
         busy = false; // 解除忙
