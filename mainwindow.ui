@@ -634,7 +634,7 @@
      </font>
     </property>
     <property name="text">
-     <string>[注意URL链接的正确书写！记得去除空格、回车等复制时不小心附带的符号]</string>
+     <string>[注意URL链接的正确书写！]</string>
     </property>
    </widget>
   </widget>

@@ -30,7 +30,7 @@ int i = 0;
 // 根据url下载图片到save_path的调用接口
 bool MainWindow::dowmload_url(QString url,QString save_path)
 {
-    // 判断url链接正确性
+    // 判断url链接是否为空
     if(url.isEmpty()) return false;
 
     // 检查程序忙碌状态
@@ -41,7 +41,8 @@ bool MainWindow::dowmload_url(QString url,QString save_path)
         return false;
     }
 
-    // 构造请求
+    // 构造正确URL请求
+    url.remove(" ").remove("\n");
     QNetworkRequest requese;
     requese.setUrl(QUrl(url));
 
